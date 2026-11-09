@@ -1,0 +1,234 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 32,
+   "id": "35aa1f4f-ef49-4902-bc9d-0649dcd73a44",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "200\n",
+      "[{'stationTriplet': '842:CO:SNTL', 'data': [{'stationElement': {'elementCode': 'SNWD', 'ordinal': 1, 'durationName': 'DAILY', 'dataPrecision': 0, 'storedUnitCode': 'in', 'originalUnitCode': 'in', 'beginDate': '2006-07-14 09:00', 'endDate': '2100-01-01 00:00', 'derivedData': False}, 'values': [{'date': '2025-01-01', 'value': 35}, {'date': '2025-01-02', 'value': 36}, {'date': '2025-01-03', 'value': 35}, {'date': '2025-01-04', 'value': 38}, {'date': '2025-01-05', 'value': 41}, {'date': '2025-01-06', 'value': 40}, {'date': '2025-01-07', 'value': 39}, {'date': '2025-01-08', 'value': 38}, {'date': '2025-01-09', 'value': 38}, {'date': '2025-01-10', 'value': 38}, {'date': '2025-01-11', 'value': 44}, {'date': '2025-01-12', 'value': 43}, {'date': '2025-01-13', 'value': 42}, {'date': '2025-01-14', 'value': 41}]}]}]\n"
+     ]
+    }
+   ],
+   "source": [
+    "import requests\n",
+    "url = \"https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/data\"\n",
+    "params = {\n",
+    "    \"stationTriplets\": \"842:CO:SNTL\",   \n",
+    "    \"elements\": \"SNWD\",\n",
+    "    \"duration\": \"DAILY\",\n",
+    "    \"beginDate\": \"2025-01-01\",\n",
+    "    \"endDate\": \"2025-01-14\",\n",
+    "}\n",
+    "headers = {\"User-Agent\": \"CU class project - Evan Bardinelli, evan.bardinelli@colorado.edu\"}\n",
+    "r = requests.get(url, params=params, headers=headers)\n",
+    "print(r.status_code)\n",
+    "print(r.json())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 33,
+   "id": "2324a834-4e0a-4fe0-a3be-c4181f46a385",
+   "metadata": {},
+   "outputs": [
+    {
+     "ename": "SyntaxError",
+     "evalue": "invalid syntax (2341880270.py, line 1)",
+     "output_type": "error",
+     "traceback": [
+      "\u001b[0;36m  Cell \u001b[0;32mIn[33], line 1\u001b[0;36m\u001b[0m\n\u001b[0;31m    https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/stations?stationTriplets=842:CO:SNTL\u001b[0m\n\u001b[0m          ^\u001b[0m\n\u001b[0;31mSyntaxError\u001b[0m\u001b[0;31m:\u001b[0m invalid syntax\n"
+     ]
+    }
+   ],
+   "source": [
+    "https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/stations?stationTriplets=842:CO:SNTL"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "36f1e1d5-cd0d-48c4-a083-7144630c2818",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print(\"{0:b}\\n{1:b}\".format(0,1,))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "4466c418-9a63-4d0f-bddf-5d29a0901969",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import json\n",
+    "import os\n",
+    "import time\n",
+    "\n",
+    "import pandas as pd\n",
+    "import requests"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "731bb528-d450-4cc6-b03d-203d83f9b18d",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "BASE = \"https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1\"\n",
+    "HEADERS = {\"User-Agent\": \"info4617 snow project - Evan Bardinelli, evan.bardinelli@colorado.edu\"}  \n",
+    "PAUSE = 1.0                      \n",
+    "START, END = \"2025-12-01\", \"2026-04-01\"\n",
+    "FETCH_FROM = \"2025-11-30\"         \n",
+    "\n",
+    "RESORTS = {\n",
+    "    \"vail\":     \"Vail Mountain\",     \n",
+    "    \"copper\":   \"Copper Mountain\",   \n",
+    "    \"loveland\": \"Loveland Basin\",    \n",
+    "}\n",
+    "\n",
+    "os.makedirs(\"data/raw/snotel\", exist_ok=True)\n",
+    "os.makedirs(\"data/clean\", exist_ok=True)\n",
+    "\n",
+    "\n",
+    "def get(url, params):\n",
+    "    \"\"\"One polite request: identify ourselves, check the status, then pause.\"\"\"\n",
+    "    r = requests.get(url, params=params, headers=HEADERS, timeout=60)\n",
+    "    print(f\"  HTTP {r.status_code}  {r.url}\")\n",
+    "    r.raise_for_status()\n",
+    "    time.sleep(PAUSE)\n",
+    "    return r.json()\n",
+    "\n",
+    "\n",
+    "rows = []\n",
+    "for resort, station_name in RESORTS.items():\n",
+    "    print(resort)\n",
+    "\n",
+    "  \n",
+    "    stations = get(f\"{BASE}/stations\",\n",
+    "                   {\"stationTriplets\": \"*:CO:SNTL\", \"stationNames\": station_name})\n",
+    "    station = next(s for s in stations if s[\"name\"].lower() == station_name.lower())\n",
+    "    triplet = station[\"stationTriplet\"]\n",
+    "    print(f\"  {station_name} = {triplet}, {station.get('elevation')} ft\")\n",
+    "\n",
+    "   \n",
+    "    data = get(f\"{BASE}/data\", {\n",
+    "        \"stationTriplets\": triplet,\n",
+    "        \"elements\": \"SNWD,WTEQ\",\n",
+    "        \"duration\": \"DAILY\",\n",
+    "        \"beginDate\": FETCH_FROM,\n",
+    "        \"endDate\": END,\n",
+    "    })\n",
+    "\n",
+    "   \n",
+    "    with open(f\"data/raw/snotel/{resort}.json\", \"w\") as f:\n",
+    "        json.dump({\"station\": station, \"response\": data}, f, indent=1)\n",
+    "\n",
+    "   \n",
+    "    for block in data[0][\"data\"]:\n",
+    "        element = block[\"stationElement\"][\"elementCode\"]\n",
+    "        for v in block[\"values\"]:\n",
+    "            rows.append({\"resort\": resort, \"station\": station_name,\n",
+    "                         \"triplet\": triplet, \"date\": v[\"date\"][:10],\n",
+    "                         \"element\": element, \"value\": v.get(\"value\")})"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "e0cb1e3d-ca06-41a1-98e2-d3ce75515e17",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "df = (pd.DataFrame(rows)\n",
+    "        .pivot_table(index=[\"resort\", \"station\", \"triplet\", \"date\"],\n",
+    "                     columns=\"element\", values=\"value\", aggfunc=\"first\")\n",
+    "        .reset_index()\n",
+    "        .rename(columns={\"SNWD\": \"depth_in\", \"WTEQ\": \"swe_in\"}))\n",
+    "df.columns.name = None\n",
+    "df[\"date\"] = pd.to_datetime(df[\"date\"])\n",
+    "df = df.sort_values([\"resort\", \"date\"])\n",
+    "\n",
+    "# New snow estimate = day-over-day rise in depth (a drop from settling counts as 0)\n",
+    "df[\"depth_change_in\"] = df.groupby(\"resort\")[\"depth_in\"].diff()\n",
+    "df[\"new_snow_in\"] = df[\"depth_change_in\"].clip(lower=0)\n",
+    "df[\"swe_change_in\"] = df.groupby(\"resort\")[\"swe_in\"].diff().round(1)\n",
+    "\n",
+    "# Drop the extra Nov 30 day now that the changes are computed\n",
+    "df = df[(df[\"date\"] >= START) & (df[\"date\"] <= END)]\n",
+    "\n",
+    "df.to_csv(\"data/clean/snotel_daily.csv\", index=False)\n",
+    "print(f\"\\nSaved {len(df)} station-days to data/clean/snotel_daily.csv\")\n",
+    "print(df.groupby(\"resort\").size())\n",
+    "print(df.head())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 39,
+   "id": "5503c751-5cb2-4bdd-a2e7-edc3e49b3e50",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "200\n",
+      "[{'stationTriplet': '842:CO:SNTL', 'data': [{'stationElement': {'elementCode': 'SNWD', 'ordinal': 1, 'durationName': 'DAILY', 'dataPrecision': 0, 'storedUnitCode': 'in', 'originalUnitCode': 'in', 'beginDate': '2006-07-14 09:00', 'endDate': '2100-01-01 00:00', 'derivedData': False}, 'values': [{'date': '2025-12-01', 'value': 6}, {'date': '2025-12-02', 'value': 8}, {'date': '2025-12-03', 'value': 13}, {'date': '2025-12-04', 'value': 11}, {'date': '2025-12-05', 'value': 14}, {'date': '2025-12-06', 'value': 16}, {'date': '2025-12-07', 'value': 15}, {'date': '2025-12-08', 'value': 15}, {'date': '2025-12-09', 'value': 13}, {'date': '2025-12-10', 'value': 13}, {'date': '2025-12-11', 'value': 12}, {'date': '2025-12-12', 'value': 12}, {'date': '2025-12-13', 'value': 11}, {'date': '2025-12-14', 'value': 11}, {'date': '2025-12-15', 'value': 11}, {'date': '2025-12-16', 'value': 11}, {'date': '2025-12-17', 'value': 12}, {'date': '2025-12-18', 'value': 12}, {'date': '2025-12-19', 'value': 12}, {'date': '2025-12-20', 'value': 12}, {'date': '2025-12-21', 'value': 11}, {'date': '2025-12-22', 'value': 11}, {'date': '2025-12-23', 'value': 11}, {'date': '2025-12-24', 'value': 11}, {'date': '2025-12-25', 'value': 11}, {'date': '2025-12-26', 'value': 11}, {'date': '2025-12-27', 'value': 12}, {'date': '2025-12-28', 'value': 13}, {'date': '2025-12-29', 'value': 12}, {'date': '2025-12-30', 'value': 12}, {'date': '2025-12-31', 'value': 12}, {'date': '2026-01-01', 'value': 13}, {'date': '2026-01-02', 'value': 15}, {'date': '2026-01-03', 'value': 14}, {'date': '2026-01-04', 'value': 14}, {'date': '2026-01-05', 'value': 17}, {'date': '2026-01-06', 'value': 16}, {'date': '2026-01-07', 'value': 16}, {'date': '2026-01-08', 'value': 20}, {'date': '2026-01-09', 'value': 20}, {'date': '2026-01-10', 'value': 19}, {'date': '2026-01-11', 'value': 19}, {'date': '2026-01-12', 'value': 18}, {'date': '2026-01-13', 'value': 18}, {'date': '2026-01-14', 'value': 18}, {'date': '2026-01-15', 'value': 18}, {'date': '2026-01-16', 'value': 18}, {'date': '2026-01-17', 'value': 18}, {'date': '2026-01-18', 'value': 19}, {'date': '2026-01-19', 'value': 18}, {'date': '2026-01-20', 'value': 18}, {'date': '2026-01-21', 'value': 18}, {'date': '2026-01-22', 'value': 18}, {'date': '2026-01-23', 'value': 22}, {'date': '2026-01-24', 'value': 25}, {'date': '2026-01-25', 'value': 26}, {'date': '2026-01-26', 'value': 25}, {'date': '2026-01-27', 'value': 24}, {'date': '2026-01-28', 'value': 24}, {'date': '2026-01-29', 'value': 25}, {'date': '2026-01-30', 'value': 25}, {'date': '2026-01-31', 'value': 24}, {'date': '2026-02-01', 'value': 24}, {'date': '2026-02-02', 'value': 23}, {'date': '2026-02-03', 'value': 23}, {'date': '2026-02-04', 'value': 23}, {'date': '2026-02-05', 'value': 23}, {'date': '2026-02-06', 'value': 22}, {'date': '2026-02-07', 'value': 22}, {'date': '2026-02-08', 'value': 22}, {'date': '2026-02-09', 'value': 22}, {'date': '2026-02-10', 'value': 22}, {'date': '2026-02-11', 'value': 22}, {'date': '2026-02-12', 'value': 25}, {'date': '2026-02-13', 'value': 26}, {'date': '2026-02-14', 'value': 26}, {'date': '2026-02-15', 'value': 25}, {'date': '2026-02-16', 'value': 25}, {'date': '2026-02-17', 'value': 30}, {'date': '2026-02-18', 'value': 32}, {'date': '2026-02-19', 'value': 32}, {'date': '2026-02-20', 'value': 35}, {'date': '2026-02-21', 'value': 33}, {'date': '2026-02-22', 'value': 32}, {'date': '2026-02-23', 'value': 31}, {'date': '2026-02-24', 'value': 31}, {'date': '2026-02-25', 'value': 32}, {'date': '2026-02-26', 'value': 34}, {'date': '2026-02-27', 'value': 32}, {'date': '2026-02-28', 'value': 32}, {'date': '2026-03-01', 'value': 32}, {'date': '2026-03-02', 'value': 32}, {'date': '2026-03-03', 'value': 34}, {'date': '2026-03-04', 'value': 32}, {'date': '2026-03-05', 'value': 32}, {'date': '2026-03-06', 'value': 37}, {'date': '2026-03-07', 'value': 35}, {'date': '2026-03-08', 'value': 34}, {'date': '2026-03-09', 'value': 33}, {'date': '2026-03-10', 'value': 32}, {'date': '2026-03-11', 'value': 32}, {'date': '2026-03-12', 'value': 31}, {'date': '2026-03-13', 'value': 30}, {'date': '2026-03-14', 'value': 30}, {'date': '2026-03-15', 'value': 31}, {'date': '2026-03-16', 'value': 31}, {'date': '2026-03-17', 'value': 29}, {'date': '2026-03-18', 'value': 27}, {'date': '2026-03-19', 'value': 25}, {'date': '2026-03-20', 'value': 22}, {'date': '2026-03-21', 'value': 20}, {'date': '2026-03-22', 'value': 18}, {'date': '2026-03-23', 'value': 18}, {'date': '2026-03-24', 'value': 14}, {'date': '2026-03-25', 'value': 10}, {'date': '2026-03-26', 'value': 8}, {'date': '2026-03-27', 'value': 4}, {'date': '2026-03-28', 'value': 1}, {'date': '2026-03-29', 'value': 1}, {'date': '2026-03-30', 'value': 0}, {'date': '2026-03-31', 'value': 0}, {'date': '2026-04-01', 'value': 2}]}]}]\n"
+     ]
+    }
+   ],
+   "source": [
+    "import requests\n",
+    "url = \"https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/data\"\n",
+    "params = {\n",
+    "    \"stationTriplets\": \"842:CO:SNTL\",   \n",
+    "    \"elements\": \"SNWD\",\n",
+    "    \"duration\": \"DAILY\",\n",
+    "    \"beginDate\": \"2025-12-01\",\n",
+    "    \"endDate\": \"2026-04-01\",\n",
+    "}\n",
+    "headers = {\"User-Agent\": \"CU class project - Evan Bardinelli, evan.bardinelli@colorado.edu\"}\n",
+    "r = requests.get(url, params=params, headers=headers)\n",
+    "print(r.status_code)\n",
+    "print(r.json())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "712e880f-8b67-4578-b2b2-25664aa541eb",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.12.2"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
